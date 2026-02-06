@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # MongoDB Service
+  mongodb:
+    image: mongo:latest
+    container_name: timeseries_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # Listener Service (The Server)
+  listener:
+    build: .
+    container_name: listener_service
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/timeseries
+      - APP_SECRET=${APP_SECRET}
+      - PORT=3000
+    depends_on:
+      - mongodb
+    command: npm run dev:listener
+
+  # Emitter Service (The Client)
+  emitter:
+    build: .
+    container_name: emitter_service
+    environment:
+      - LISTENER_URL=http://listener:3000
+      - APP_SECRET=${APP_SECRET}
+    depends_on:
+      - listener
+    command: npm run dev:emitter
+
+volumes:
+  mongo_data:
