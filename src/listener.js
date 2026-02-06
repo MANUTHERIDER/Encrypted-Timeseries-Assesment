@@ -6,7 +6,7 @@ const { decrypt } = require('./utils/crypto');
 
 const mongoose = require('mongoose');
 const TimeSeries = require('./models/TimeSeries');
-const { getMinuteStart } = require('utils/time_helper');
+const { getMinuteStart } = require('./utils/time_helper');
 const { deprecate } = require('util');
 const { timeStamp } = require('console');
 
@@ -22,12 +22,12 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/timeseries'
 
 
 io.on('connection',async (socket) => {
+    let validBatch = [];
     console.log('An emitter connected:', socket.id);
     socket.on('data_stream', async (stream) => {
         const encryptedMessages = stream.split('|');
         const minuteBucket = getMinuteStart(new Date());
 
-        let validBatch = [];
 
         let successCount = 0;
 
@@ -44,12 +44,13 @@ io.on('connection',async (socket) => {
             }
         });
 
+        
         if (validBatch.length > 0) {
             try {
                 await TimeSeries.findOneAndUpdate(
-                    { timeStamp: minuteBucket },
+                    { timestamp: minuteBucket },
                     {
-                        $push: { data_points: { $each: validateBatch } },
+                        $push: { data_points: { $each: validBatch } },
                         $inc: { count: validBatch.length }
                     },
                     { upsert: true, new: true }

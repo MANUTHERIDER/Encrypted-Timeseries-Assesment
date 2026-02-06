@@ -18,6 +18,7 @@
   "devDependencies": {
     "express": "^5.2.1",
     "jest": "^30.2.0",
+    "mongoose": "^9.1.6",
     "socket.io": "^4.8.3"
   }
 }
