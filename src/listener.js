@@ -4,31 +4,61 @@ const http = require('http');
 const { Server } = require('socket.io');
 const { decrypt } = require('./utils/crypto');
 
+const mongoose = require('mongoose');
+const TimeSeries = require('./models/TimeSeries');
+const { getMinuteStart } = require('utils/time_helper');
+const { deprecate } = require('util');
+const { timeStamp } = require('console');
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
 const PASSKEY = process.env.APP_SECRET;
 
-io.on('connection', (socket) => {
-    console.log('An emitter connected:', socket.id);
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/timeseries')
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.log('MOngo connection error:', err));
 
-    socket.on('data_stream', (stream) => {
+
+io.on('connection',async (socket) => {
+    console.log('An emitter connected:', socket.id);
+    socket.on('data_stream', async (stream) => {
         const encryptedMessages = stream.split('|');
+        const minuteBucket = getMinuteStart(new Date());
+
+        let validBatch = [];
+
         let successCount = 0;
 
         encryptedMessages.forEach(msg => {
             try {
                 const decrypted = decrypt(msg, PASSKEY);
+                validBatch.push(decrypted);
                 console.log('Decrypted valid data:', decrypted);
                 successCount++;
-                
+
                 // Later - Save to MongoDB
             } catch (err) {
                 console.error('Data corrupted or invalid key. Skipping message.');
             }
         });
 
+        if (validBatch.length > 0) {
+            try {
+                await TimeSeries.findOneAndUpdate(
+                    { timeStamp: minuteBucket },
+                    {
+                        $push: { data_points: { $each: validateBatch } },
+                        $inc: { count: validBatch.length }
+                    },
+                    { upsert: true, new: true }
+                );
+                console.log(`Saved ${validBatch.length} points to bucket ${minuteBucket.toISOString()}`);
+            } catch (dbErr) {
+                console.error('Database error', dbErr);
+            }
+        }
         console.log(`Received ${encryptedMessages.length} messages. Success: ${successCount}`);
     });
 });
