@@ -1,6 +1,5 @@
 const { encrypt, decrypt } = require('../src/utils/crypto');
-const dotnet = require('dotnet')
-dotnet.config();
+require('dotenv').config();
 
 describe('Cryptography Module', () => {
     const passkey = process.env.APP_SECRET; 
