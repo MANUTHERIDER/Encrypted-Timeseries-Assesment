@@ -51,3 +51,7 @@ Thumbs.db
 /.vscode
 /.history
 /coverage
+
+# Log Files
+logs/
+*.log

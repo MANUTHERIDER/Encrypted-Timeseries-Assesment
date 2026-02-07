@@ -1,4 +1,4 @@
-const { prepareStream } = require('../src/emitter');
+const { prepareStream } = require('../src/services/emitter.service');
 
 describe('Emitter Stream Logic', () => {
     test('should generate a string with 49 to 499 encrypted messages', () => {

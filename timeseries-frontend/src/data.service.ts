@@ -19,7 +19,6 @@ export class DataService {
   getLiveUpdates(): Observable<any> {
     return new Observable(observer => {
       this.socket.on('live_data_update', (data) => {
-        console.log('Received update:', data);
         observer.next(data);
       });
       this.socket.on('disconnect', () => {

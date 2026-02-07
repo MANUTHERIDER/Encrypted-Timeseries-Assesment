@@ -16,17 +16,34 @@ Prerequisites
   > Angular CLI
 
 Environment Setup
---------------------
-  APP_SECRET=your_32_char_secret_key_here
-  MONGO_URI=mongodb://localhost:27017/timeseries
-  LISTENER_URL=http://localhost:3000
+-------------------- 
+# App Details
+Port=3000
+APP_NAME=Encrypted-Timeseries
+Version=1.0.0
+
+# App Secret Key
+APP_SECRET=your-32-char-very-secret-pass-key
+
+# DB URI
+MONGO_URI=mongodb://localhost:27017/timeseries
+
+# Listener URL
+LISTENER_URL=http://localhost:3000
+
+# Socket.IO Reconnection Settings
+RECONNECTION_ENABLED=true
+RECONNECTION_DELAY=3000
+RECONNECTION_ATTEMPTS=5
+RECONNECTION_DELAY_MAX=9000
+RECONNECTION_TIMEOUT=21000
 
 Installation
 --------------------
   Start Docker DB -> docker-compose up --build
   Start listner Services -> npm install && npm run dev:listener
   Start Emitter Service -> npm run dev:emitter
-  Start Frontend -> cd frontend && ng serve
+  Start Frontend -> npm run dev:frontend
   Test -> npm test
 
 
